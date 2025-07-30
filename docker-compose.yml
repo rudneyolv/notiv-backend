@@ -1,0 +1,36 @@
+# Define os serviços (containers) que compõem sua aplicação.
+services:
+  notiv_db:
+    image: postgres:17-alpine
+    container_name: notiv_local
+    environment:
+      - TZ=America/Sao_Paulo
+    env_file:
+      - .env
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # (Opcional) Descomente a linha abaixo para executar scripts SQL na inicialização do banco.
+      # Crie uma pasta chamada "init-db" e coloque seus arquivos .sql ou .sh dentro dela.
+      # - ./init-db:/docker-entrypoint-initdb.d
+    # Política de reinício: o container será reiniciado automaticamente, a menos que seja parado manualmente.
+    restart: unless-stopped
+    # Verificação de saúde: garante que o serviço PostgreSQL está realmente pronto para aceitar conexões.
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Conecta o container a uma rede customizada para melhor isolamento e organização.
+    networks:
+      - notiv_network
+
+# Define os volumes nomeados gerenciados pelo Docker.
+volumes:
+  db_data:
+
+# Define as redes customizadas da aplicação.
+networks:
+  notiv_network:
+    driver: bridge
