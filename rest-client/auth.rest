@@ -1,18 +1,6 @@
 @baseUrl = http://localhost:3001
 @jwtToken = {{AuthLogin.response.body.accessToken}}
 
-## auth login
-# @name AuthLogin
-POST {{baseUrl}}/auth/login
-Content-Type: application/json
-
-{
-  "email": "rudney@gmail.com",
-  "password": "12345678"
-}
-
-
-###
 
 ## create user
 # @name CreateUser
@@ -21,9 +9,22 @@ Content-Type: application/json
 
 {
   "name": "rudney",
-  "email": "rudneynew@gmail.com",
-  "password": "12345678"
+  "email": "rudney@gmail.com",
+  "password": "123456"
 }
+
+###
+
+## auth login
+# @name AuthLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "rudney@gmail.com",
+  "password": "123456"
+}
+
 
 ###
 
@@ -40,3 +41,15 @@ Authorization: Bearer {{jwtToken}}
 }
 
 ###
+
+## update (patch) user
+# @name UpdateUser
+
+PATCH {{baseUrl}}/users/me/password
+Content-Type: application/json
+Authorization: Bearer {{jwtToken}}
+
+{
+  "currentPassword": "123456",
+  "newPassword": "123456"
+}

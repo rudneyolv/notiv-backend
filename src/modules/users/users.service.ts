@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,6 +13,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { HASH_TOKEN } from 'src/common/hash/hash.token';
 import { HashInterface } from 'src/common/hash/hash.interface';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -46,7 +48,7 @@ export class UsersService {
       throw new BadRequestException('Nenhum dado foi enviado');
     }
 
-    const currentUser = await this.findOneByOfFail({ id });
+    const currentUser = await this.findOneByOrFail({ id });
     const { email: currentEmail, name: currentName } = currentUser;
 
     if (newEmail && newEmail !== currentEmail) {
@@ -64,11 +66,27 @@ export class UsersService {
     return await this.userRepo.save(currentUser);
   }
 
+  async updatePassword(id: string, data: UpdatePasswordDto): Promise<User> {
+    const { currentPassword, newPassword } = data;
+
+    const user = await this.findOneByOrFail({ id });
+
+    const isValid = await this.hasher.compare(currentPassword, user.password);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Senha atual inválida');
+    }
+
+    user.password = await this.hasher.hash(newPassword);
+
+    return await this.userRepo.save(user);
+  }
+
   findByEmail(email: string): Promise<User | null> {
     return this.userRepo.findOneBy({ email });
   }
 
-  async findOneByOfFail(data: Partial<User>) {
+  async findOneByOrFail(data: Partial<User>) {
     const user = await this.userRepo.findOneBy(data);
 
     if (!user) {

@@ -16,6 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { AuthenticatedRequest } from '../auth/types/authenticated-request.types';
 import { UserResponseDto } from './dto/response-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('users')
 export class UsersController {
@@ -40,6 +41,16 @@ export class UsersController {
     @Body() data: UpdateUserDto,
   ): Promise<UserResponseDto> {
     const user = await this.usersService.update(req.user.id, data);
+    return new UserResponseDto(user);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('/me/password')
+  async updatePassword(
+    @Req() req: AuthenticatedRequest,
+    @Body() data: UpdatePasswordDto,
+  ) {
+    const user = await this.usersService.updatePassword(req.user.id, data);
     return new UserResponseDto(user);
   }
 }
