@@ -11,10 +11,6 @@ Content-Type: application/json
   "password": "12345678"
 }
 
-###
-
-GET {{baseUrl}}/users
-Authorization: Bearer {{jwtToken}}
 
 ###
 
@@ -25,10 +21,22 @@ Content-Type: application/json
 
 {
   "name": "rudney",
-  "email": "rudney@gmail.com",
+  "email": "rudneynew@gmail.com",
   "password": "12345678"
 }
 
 ###
 
+## update (patch) user
+# @name UpdateUser
 
+PATCH {{baseUrl}}/users/me
+Content-Type: application/json
+Authorization: Bearer {{jwtToken}}
+
+{
+  "name": "rudney new",
+  "email": "rudneynew@gmail.com"
+}
+
+###
