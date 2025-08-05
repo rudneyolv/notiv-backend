@@ -85,5 +85,5 @@ Authorization: Bearer {{jwtToken}}
 ## Delete me
 # @name DeleteMe
 
-PATCH {{baseUrl}}/users/me/delete
+PATCH {{baseUrl}}/users/me/soft-delete
 Authorization: Bearer {{jwtToken}}

@@ -76,7 +76,7 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Patch('me/delete')
+  @Patch('me/soft-delete')
   async softDeleteMe(@Req() req: AuthenticatedRequest) {
     const user = await this.usersService.softDeleteMe(req.user.id);
     return new UserResponseDto(user);
