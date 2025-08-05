@@ -24,6 +24,28 @@ export class UsersService {
     @Inject(HASH_TOKEN) private readonly hasher: HashInterface,
   ) {}
 
+  async findAll(): Promise<User[]> {
+    return this.userRepo.find({ order: { createdAt: 'DESC' } });
+  }
+
+  async findOneBy(data: Partial<User>): Promise<User | null> {
+    return this.userRepo.findOneBy(data);
+  }
+
+  async findOneByOrFail(data: Partial<User>) {
+    const user = await this.userRepo.findOneBy(data);
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    return user;
+  }
+
+  findByEmail(email: string): Promise<User | null> {
+    return this.userRepo.findOneBy({ email });
+  }
+
   async create(data: CreateUserDto): Promise<User> {
     const { name, email, password } = data;
     const exists = await this.userRepo.existsBy({ email });
@@ -82,14 +104,11 @@ export class UsersService {
     return await this.userRepo.save(user);
   }
 
-  findByEmail(email: string): Promise<User | null> {
-    return this.userRepo.findOneBy({ email });
-  }
+  async softDeleteMe(id: string): Promise<User> {
+    const user = await this.findOneByOrFail({ id });
+    const result = await this.userRepo.softDelete({ id });
 
-  async findOneByOrFail(data: Partial<User>) {
-    const user = await this.userRepo.findOneBy(data);
-
-    if (!user) {
+    if (result.affected === 0) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
