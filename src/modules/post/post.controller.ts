@@ -1,13 +1,65 @@
-import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  Logger,
+  Get,
+  Param,
+  BadRequestException,
+} from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { AuthenticatedRequest } from '../auth/types/authenticated-request.types';
 import { PostResponseDto } from './dto/response-post.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { isUUID } from 'class-validator';
 
-@Controller('post')
+@Controller('posts')
 export class PostController {
+  private readonly logger = new Logger(PostController.name);
   constructor(private readonly postService: PostService) {}
+
+  @Get()
+  async getAllPublic() {
+    try {
+      const posts = await this.postService.getAllPublic();
+      const cleanedPosts = posts.map((post) => new PostResponseDto(post));
+      return cleanedPosts;
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/me')
+  async getMyPosts(@Req() req: AuthenticatedRequest) {
+    try {
+      const myPosts = await this.postService.getAllByAuthorId(req.user.id);
+      const myPostsCleaned = myPosts.map((post) => new PostResponseDto(post));
+      return myPostsCleaned;
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
+
+  @Get('/:id')
+  async getByid(@Param('id') id: string) {
+    try {
+      if (!isUUID(id)) {
+        throw new BadRequestException('Id inválido');
+      }
+
+      const post = await this.postService.getById(id);
+      return new PostResponseDto(post);
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
@@ -15,8 +67,12 @@ export class PostController {
     @Req() req: AuthenticatedRequest,
     @Body() data: CreatePostDto,
   ): Promise<PostResponseDto> {
-    const post = await this.postService.create({ data, author: req.user });
-
-    return new PostResponseDto(post);
+    try {
+      const post = await this.postService.create({ data, author: req.user });
+      return new PostResponseDto(post);
+    } catch (error: unknown) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 }

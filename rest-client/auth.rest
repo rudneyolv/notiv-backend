@@ -1,8 +1,8 @@
 @baseUrl = http://localhost:3001
 @jwtToken = {{AuthLogin.response.body.accessToken}}
 
-@postUuid = {{createPostOwned.response.body.id}}
-@postSlug = {{createPostOwned.response.body.slug}}
+@postUuid = {{createPost.response.body.id}}
+@postSlug = {{createPost.response.body.slug}}
 
 @imagePath = {{uploadImage.response.body.url}}
 @imageUrl = {{baseUrl}}{{imagePath}}
@@ -22,8 +22,8 @@ POST {{baseUrl}}/users
 Content-Type: application/json
 
 {
-  "name": "rudney",
-  "email": "rudney@gmail.com",
+  "name": "carlos",
+  "email": "carlos@gmail.com",
   "password": "123456"
 }
 
@@ -35,7 +35,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "rudney@gmail.com",
+  "email": "carlos@gmail.com",
   "password": "123456"
 }
 
@@ -48,8 +48,8 @@ Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
 {
-  "name": "rudney new",
-  "email": "rudneynew@gmail.com"
+  "name": "carlos new",
+  "email": "carlosnew@gmail.com"
 }
 
 ###
@@ -99,47 +99,46 @@ Authorization: Bearer {{jwtToken}}
 
 ## create post
 # @name createPost
-POST {{baseUrl}}/post
+POST {{baseUrl}}/posts
 Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
 {
-  "title": "Título do post 2",
+  "title": "Título do post - carlos",
   "summary": "Um resumo sobre o post",
   "content": "Conteúdo muito bacana e legal sobre o post olha q manero haha"
 }
 
 ###
 
-## read all post public
-# @name readAllPostPublic
-GET {{baseUrl}}/post/
+## get all public posts
+# @name getAllPublic
+GET {{baseUrl}}/posts
 
 ###
 
-## read one post public
-# @name readOnePostPublic
-GET {{baseUrl}}/post/{{postSlug}}
-
+## get all my posts
+# @name getAllMyPosts
+GET {{baseUrl}}/posts/me
+Authorization: Bearer {{jwtToken}}
 ###
 
-## read all post owned
-# @name readAllPostOwned
-GET {{baseUrl}}/post/me
+## get post by id
+# @name getPostById
+GET {{baseUrl}}/posts/{{postUuid}}
 Authorization: Bearer {{jwtToken}}
 
 ###
 
-## read one post owned
-# @name readOnePostOwned
-GET {{baseUrl}}/post/me/{{postUuid}}
-Authorization: Bearer {{jwtToken}}
+## get post by slug
+# @name getPostBySlug
+GET {{baseUrl}}/posts/{{postSlug}}
 
 ###
 
-## update one post owned
-# @name updateOnePostOwned
-PATCH {{baseUrl}}/post/me/{{postUuid}}
+## update post
+# @name updatePost
+PATCH {{baseUrl}}/posts/me/{{postUuid}}
 Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
@@ -152,9 +151,9 @@ Authorization: Bearer {{jwtToken}}
 
 ###
 
-## delete one post owned
-# @name deleteOnePostOwned
-DELETE {{baseUrl}}/post/me/{{postUuid}}
+## soft delete post
+# @name softDeletePost
+DELETE {{baseUrl}}/posts/me/{{postUuid}}
 Authorization: Bearer {{jwtToken}}
 
 ###############################################################################
