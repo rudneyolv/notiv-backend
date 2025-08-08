@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   BadRequestException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -39,11 +40,9 @@ export class UsersController {
   }
 
   @Get('/:id')
-  async getById(@Param('id') id: string): Promise<UserResponseDto> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Id inválido');
-    }
-
+  async getById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UserResponseDto> {
     const user = await this.usersService.findOneByOrFail({ id });
     return new UserResponseDto(user);
   }

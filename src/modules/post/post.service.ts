@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
@@ -6,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { SLUGIFY_TOKEN } from 'src/common/slugify/slugify.token';
 import { SlugifyInterface } from 'src/common/slugify/slugify.interface';
+import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class PostService {
@@ -51,5 +57,26 @@ export class PostService {
     const randomId = Math.random().toString(36).substring(2, 8); // 6 chars
     const slug = this.slugify.generate(`${data.title}-${randomId}`);
     return this.postRepo.save({ slug, ...data, author });
+  }
+
+  async update(
+    postId: string,
+    authorId: string,
+    data: UpdatePostDto,
+  ): Promise<Post> {
+    const post = await this.postRepo.findOne({
+      where: { id: postId, author: { id: authorId } },
+      relations: ['author'],
+    });
+
+    if (!post) {
+      throw new NotFoundException(
+        'Post não encontrado ou você não tem permissão para editá-lo.',
+      );
+    }
+
+    Object.assign(post, data);
+
+    return this.postRepo.save(post);
   }
 }

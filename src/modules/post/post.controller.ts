@@ -8,13 +8,15 @@ import {
   Get,
   Param,
   BadRequestException,
+  ParseUUIDPipe,
+  Patch,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { AuthenticatedRequest } from '../auth/types/authenticated-request.types';
 import { PostResponseDto } from './dto/response-post.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { isUUID } from 'class-validator';
+import { UpdatePostDto } from './dto/update-post.dto';
 
 @Controller('posts')
 export class PostController {
@@ -47,12 +49,8 @@ export class PostController {
   }
 
   @Get('/:id')
-  async getByid(@Param('id') id: string) {
+  async getByid(@Param('id', ParseUUIDPipe) id: string) {
     try {
-      if (!isUUID(id)) {
-        throw new BadRequestException('Id inválido');
-      }
-
       const post = await this.postService.getById(id);
       return new PostResponseDto(post);
     } catch (error) {
@@ -69,6 +67,26 @@ export class PostController {
   ): Promise<PostResponseDto> {
     try {
       const post = await this.postService.create({ data, author: req.user });
+      return new PostResponseDto(post);
+    } catch (error: unknown) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('/:id')
+  async update(
+    @Req() req: AuthenticatedRequest,
+    @Body() data: UpdatePostDto,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<PostResponseDto> {
+    try {
+      if (Object.keys(data).length === 0) {
+        throw new BadRequestException('Nenhum dado foi enviado');
+      }
+
+      const post = await this.postService.update(id, req.user.id, data);
       return new PostResponseDto(post);
     } catch (error: unknown) {
       this.logger.error(error);

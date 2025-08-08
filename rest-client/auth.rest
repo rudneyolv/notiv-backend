@@ -129,16 +129,14 @@ GET {{baseUrl}}/posts/{{postUuid}}
 Authorization: Bearer {{jwtToken}}
 
 ###
-
 ## get post by slug
 # @name getPostBySlug
-GET {{baseUrl}}/posts/{{postSlug}}
-
+# GET {{baseUrl}}/posts/{{postSlug}}
 ###
 
 ## update post
 # @name updatePost
-PATCH {{baseUrl}}/posts/me/{{postUuid}}
+PATCH {{baseUrl}}/posts/{{postUuid}}
 Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
@@ -146,7 +144,7 @@ Authorization: Bearer {{jwtToken}}
   "title": "NOVO - Título do post",
   "excerpt": "NOVO - Excerto",
   "content": "NOVO - Conteúdo",
-  "published": true
+  "published": false
 }
 
 ###
