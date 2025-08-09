@@ -104,7 +104,7 @@ Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
 {
-  "title": "Título do post - carlos",
+  "title": "Título do post - carlos novo",
   "summary": "Um resumo sobre o post",
   "content": "Conteúdo muito bacana e legal sobre o post olha q manero haha"
 }
@@ -125,13 +125,13 @@ Authorization: Bearer {{jwtToken}}
 
 ## get post by id
 # @name getPostById
-GET {{baseUrl}}/posts/{{postUuid}}
+GET {{baseUrl}}/posts/id/{{postUuid}}
 Authorization: Bearer {{jwtToken}}
 
 ###
 ## get post by slug
 # @name getPostBySlug
-# GET {{baseUrl}}/posts/{{postSlug}}
+GET {{baseUrl}}/posts/slug/{{postSlug}}
 ###
 
 ## update post
@@ -151,7 +151,7 @@ Authorization: Bearer {{jwtToken}}
 
 ## soft delete post
 # @name softDeletePost
-DELETE {{baseUrl}}/posts/me/{{postUuid}}
+PATCH {{baseUrl}}/posts/soft-delete/{{postUuid}}
 Authorization: Bearer {{jwtToken}}
 
 ###############################################################################

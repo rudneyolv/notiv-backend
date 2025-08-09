@@ -48,10 +48,21 @@ export class PostController {
     }
   }
 
-  @Get('/:id')
+  @Get('/id/:id')
   async getByid(@Param('id', ParseUUIDPipe) id: string) {
     try {
       const post = await this.postService.getById(id);
+      return new PostResponseDto(post);
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
+
+  @Get('/slug/:slug')
+  async getBySlug(@Param('slug') id: string) {
+    try {
+      const post = await this.postService.getBySlug(id);
       return new PostResponseDto(post);
     } catch (error) {
       this.logger.error(error);
@@ -78,19 +89,38 @@ export class PostController {
   @Patch('/:id')
   async update(
     @Req() req: AuthenticatedRequest,
-    @Body() data: UpdatePostDto,
+    @Body() postDto: UpdatePostDto,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<PostResponseDto> {
     try {
-      if (Object.keys(data).length === 0) {
+      if (Object.keys(postDto).length === 0) {
         throw new BadRequestException('Nenhum dado foi enviado');
       }
 
-      const post = await this.postService.update(id, req.user.id, data);
+      const post = await this.postService.update({
+        postId: id,
+        authorId: req.user.id,
+        postDto: postDto,
+      });
+
       return new PostResponseDto(post);
     } catch (error: unknown) {
       this.logger.error(error);
       throw error;
     }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('/soft-delete/:id')
+  async softDelete(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const post = await this.postService.softDelete({
+      postId: id,
+      authorId: req.user.id,
+    });
+
+    return new PostResponseDto(post);
   }
 }

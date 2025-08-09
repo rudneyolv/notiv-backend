@@ -47,6 +47,17 @@ export class PostService {
     return post;
   }
 
+  async getBySlug(slug: string): Promise<Post> {
+    const post = await this.postRepo.findOne({
+      where: { slug },
+      relations: ['author'],
+    });
+
+    if (!post) throw new NotFoundException('Post não encontrado');
+
+    return post;
+  }
+
   create({
     data,
     author,
@@ -59,11 +70,13 @@ export class PostService {
     return this.postRepo.save({ slug, ...data, author });
   }
 
-  async update(
-    postId: string,
-    authorId: string,
-    data: UpdatePostDto,
-  ): Promise<Post> {
+  async update(data: {
+    postId: string;
+    authorId: string;
+    postDto: UpdatePostDto;
+  }): Promise<Post> {
+    const { postId, authorId, postDto } = data;
+
     const post = await this.postRepo.findOne({
       where: { id: postId, author: { id: authorId } },
       relations: ['author'],
@@ -75,8 +88,34 @@ export class PostService {
       );
     }
 
-    Object.assign(post, data);
+    Object.assign(post, postDto);
 
     return this.postRepo.save(post);
+  }
+
+  async softDelete(data: { postId: string; authorId: string }) {
+    const { postId, authorId } = data;
+
+    const post = await this.postRepo.findOne({
+      where: { id: postId, author: { id: authorId } },
+      relations: ['author'],
+    });
+
+    if (!post) {
+      throw new NotFoundException(
+        'Post não encontrado ou você não tem permissão para editá-lo.',
+      );
+    }
+
+    const result = await this.postRepo.softDelete({
+      id: postId,
+      author: { id: authorId },
+    });
+
+    if (result.affected === 0) {
+      throw new NotFoundException('Post não alterado');
+    }
+
+    return post;
   }
 }
