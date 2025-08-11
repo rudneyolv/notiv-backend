@@ -60,9 +60,9 @@ export class PostController {
   }
 
   @Get('/slug/:slug')
-  async getBySlug(@Param('slug') id: string) {
+  async getBySlug(@Param('slug') slug: string) {
     try {
-      const post = await this.postService.getBySlug(id);
+      const post = await this.postService.getBySlug(slug);
       return new PostResponseDto(post);
     } catch (error) {
       this.logger.error(error);

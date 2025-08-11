@@ -1,11 +1,6 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
@@ -13,6 +8,13 @@ import { SLUGIFY_TOKEN } from 'src/common/slugify/slugify.token';
 import { SlugifyInterface } from 'src/common/slugify/slugify.interface';
 import { UpdatePostDto } from './dto/update-post.dto';
 
+interface UpdateProps {
+  postId: string;
+  authorId: string;
+  postDto: UpdatePostDto;
+}
+
+// TODO: Filtro pra achar apenas posts com published
 @Injectable()
 export class PostService {
   constructor(
@@ -21,10 +23,22 @@ export class PostService {
     @Inject(SLUGIFY_TOKEN) private readonly slugify: SlugifyInterface,
   ) {}
 
+  async findOneByOrFail(where: FindOptionsWhere<Post>) {
+    const post = await this.postRepo.findOne({
+      where,
+      relations: ['author'],
+    });
+
+    if (!post) throw new NotFoundException('Post não encontrado');
+
+    return post;
+  }
+
   async getAllPublic(): Promise<Post[]> {
     return this.postRepo.find({
       order: { createdAt: 'DESC' },
       relations: ['author'],
+      where: { published: true },
     });
   }
 
@@ -37,25 +51,11 @@ export class PostService {
   }
 
   async getById(id: string): Promise<Post> {
-    const post = await this.postRepo.findOne({
-      where: { id },
-      relations: ['author'],
-    });
-
-    if (!post) throw new NotFoundException('Post não encontrado');
-
-    return post;
+    return this.findOneByOrFail({ id, published: true });
   }
 
   async getBySlug(slug: string): Promise<Post> {
-    const post = await this.postRepo.findOne({
-      where: { slug },
-      relations: ['author'],
-    });
-
-    if (!post) throw new NotFoundException('Post não encontrado');
-
-    return post;
+    return this.findOneByOrFail({ slug, published: true });
   }
 
   create({
@@ -65,47 +65,29 @@ export class PostService {
     data: CreatePostDto;
     author: User;
   }): Promise<Post> {
-    const randomId = Math.random().toString(36).substring(2, 8); // 6 chars
+    const randomId = Math.random().toString(36).substring(2, 8); // 6 random chars
     const slug = this.slugify.generate(`${data.title}-${randomId}`);
-    return this.postRepo.save({ slug, ...data, author });
+    return this.postRepo.save({ ...data, author, slug });
   }
 
-  async update(data: {
-    postId: string;
-    authorId: string;
-    postDto: UpdatePostDto;
-  }): Promise<Post> {
+  async update(data: UpdateProps): Promise<Post> {
     const { postId, authorId, postDto } = data;
-
-    const post = await this.postRepo.findOne({
-      where: { id: postId, author: { id: authorId } },
-      relations: ['author'],
+    const post = await this.findOneByOrFail({
+      id: postId,
+      author: { id: authorId },
     });
 
-    if (!post) {
-      throw new NotFoundException(
-        'Post não encontrado ou você não tem permissão para editá-lo.',
-      );
-    }
-
     Object.assign(post, postDto);
-
     return this.postRepo.save(post);
   }
 
   async softDelete(data: { postId: string; authorId: string }) {
     const { postId, authorId } = data;
 
-    const post = await this.postRepo.findOne({
-      where: { id: postId, author: { id: authorId } },
-      relations: ['author'],
+    const post = await this.findOneByOrFail({
+      id: postId,
+      author: { id: authorId },
     });
-
-    if (!post) {
-      throw new NotFoundException(
-        'Post não encontrado ou você não tem permissão para editá-lo.',
-      );
-    }
 
     const result = await this.postRepo.softDelete({
       id: postId,
