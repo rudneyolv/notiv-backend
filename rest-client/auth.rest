@@ -35,7 +35,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "carlos@gmail.com",
+  "email": "carlosnew@gmail.com",
   "password": "123456"
 }
 
@@ -104,7 +104,7 @@ Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
 {
-  "title": "Título do post - carlos novo",
+  "title": "Título do post - carlos novo 11/08",
   "summary": "Um resumo sobre o post",
   "content": "Conteúdo muito bacana e legal sobre o post olha q manero haha"
 }
@@ -141,7 +141,7 @@ Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
 {
-  "title": "NOVO - Título do post",
+  "title": "NOVO - Título do post 11/08/2025",
   "excerpt": "NOVO - Excerto",
   "content": "NOVO - Conteúdo",
   "published": false
@@ -168,7 +168,7 @@ Content-Type: multipart/form-data; boundary=----BryenFormBoundary
 Content-Disposition: form-data; name="file"; filename="exemplo.png"
 Content-Type: image/png
 
-< ../dev/images/sample-image.jpeg
+< ../dev/images/image.jpeg
 ------BryenFormBoundary--
 
 ###
