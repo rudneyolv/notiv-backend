@@ -25,49 +25,29 @@ export class PostController {
 
   @Get()
   async getAllPublic() {
-    try {
-      const posts = await this.postService.getAllPublic();
-      const cleanedPosts = posts.map((post) => new PostResponseDto(post));
-      return cleanedPosts;
-    } catch (error) {
-      this.logger.error(error);
-      throw error;
-    }
+    const posts = await this.postService.getAllPublic();
+    const cleanedPosts = posts.map((post) => new PostResponseDto(post));
+    return cleanedPosts;
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('/me')
   async getMyPosts(@Req() req: AuthenticatedRequest) {
-    try {
-      const myPosts = await this.postService.getAllByAuthorId(req.user.id);
-      const myPostsCleaned = myPosts.map((post) => new PostResponseDto(post));
-      return myPostsCleaned;
-    } catch (error) {
-      this.logger.error(error);
-      throw error;
-    }
+    const myPosts = await this.postService.getAllByAuthorId(req.user.id);
+    const myPostsCleaned = myPosts.map((post) => new PostResponseDto(post));
+    return myPostsCleaned;
   }
 
   @Get('/id/:id')
   async getByid(@Param('id', ParseUUIDPipe) id: string) {
-    try {
-      const post = await this.postService.getById(id);
-      return new PostResponseDto(post);
-    } catch (error) {
-      this.logger.error(error);
-      throw error;
-    }
+    const post = await this.postService.getById(id);
+    return new PostResponseDto(post);
   }
 
   @Get('/slug/:slug')
   async getBySlug(@Param('slug') slug: string) {
-    try {
-      const post = await this.postService.getBySlug(slug);
-      return new PostResponseDto(post);
-    } catch (error) {
-      this.logger.error(error);
-      throw error;
-    }
+    const post = await this.postService.getBySlug(slug);
+    return new PostResponseDto(post);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -76,13 +56,8 @@ export class PostController {
     @Req() req: AuthenticatedRequest,
     @Body() data: CreatePostDto,
   ): Promise<PostResponseDto> {
-    try {
-      const post = await this.postService.create({ data, author: req.user });
-      return new PostResponseDto(post);
-    } catch (error: unknown) {
-      this.logger.error(error);
-      throw error;
-    }
+    const post = await this.postService.create({ data, author: req.user });
+    return new PostResponseDto(post);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -92,22 +67,17 @@ export class PostController {
     @Body() postDto: UpdatePostDto,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<PostResponseDto> {
-    try {
-      if (Object.keys(postDto).length === 0) {
-        throw new BadRequestException('Nenhum dado foi enviado');
-      }
-
-      const post = await this.postService.update({
-        postId: id,
-        authorId: req.user.id,
-        postDto: postDto,
-      });
-
-      return new PostResponseDto(post);
-    } catch (error: unknown) {
-      this.logger.error(error);
-      throw error;
+    if (Object.keys(postDto).length === 0) {
+      throw new BadRequestException('Nenhum dado foi enviado');
     }
+
+    const post = await this.postService.update({
+      postId: id,
+      authorId: req.user.id,
+      postDto: postDto,
+    });
+
+    return new PostResponseDto(post);
   }
 
   @UseGuards(AuthGuard('jwt'))
