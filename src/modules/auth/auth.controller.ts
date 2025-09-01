@@ -1,8 +1,18 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/create-auth.dto';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import { AuthenticatedRequest } from './types/authenticated-request.types';
 
 @Controller('auth')
 export class AuthController {
@@ -10,6 +20,12 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('validate-session')
+  validateSession(@Req() req: AuthenticatedRequest) {
+    return { logged: !!req.user };
+  }
 
   @Post('login')
   async login(
@@ -22,7 +38,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 86_400_000, // 1d
+      maxAge: 604_800_000, // 7d
       path: '/',
     });
 

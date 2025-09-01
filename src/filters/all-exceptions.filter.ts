@@ -56,7 +56,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     return response.status(status).json({
-      message: messages,
+      messages: messages,
       error: errorName,
       statusCode: status,
     });

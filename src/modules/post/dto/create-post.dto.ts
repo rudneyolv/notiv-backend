@@ -26,7 +26,7 @@ export class CreatePostDto {
   @IsUrl(
     { require_tld: false },
     { message: 'A URL da imagem precisa ser válida' },
-  ) // Top level domain proíbe localhost e IP
+  )
   imageUrl?: string;
 
   @IsBoolean({ message: 'Campo de publicar post precisa ser um boolean' })

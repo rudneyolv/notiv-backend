@@ -4,7 +4,6 @@ import {
   Body,
   Req,
   UseGuards,
-  Logger,
   Get,
   Param,
   BadRequestException,
@@ -20,7 +19,6 @@ import { UpdatePostDto } from './dto/update-post.dto';
 
 @Controller('posts')
 export class PostController {
-  private readonly logger = new Logger(PostController.name);
   constructor(private readonly postService: PostService) {}
 
   @Get()

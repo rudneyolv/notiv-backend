@@ -36,7 +36,7 @@ export class UsersService {
     const user = await this.userRepo.findOneBy(data);
 
     if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new NotFoundException('O usuário não foi encontrado.');
     }
 
     return user;
@@ -50,7 +50,7 @@ export class UsersService {
     const { name, email, password } = data;
     const exists = await this.userRepo.existsBy({ email });
 
-    if (exists) throw new ConflictException('E-mail já existe');
+    if (exists) throw new ConflictException('Este e-mail já existe.');
 
     const hashedPassword = await this.hasher.hash(password);
 
@@ -67,7 +67,9 @@ export class UsersService {
     const { email: newEmail, name: newName } = data;
 
     if (!newEmail && !newName) {
-      throw new BadRequestException('Nenhum dado foi enviado');
+      throw new BadRequestException(
+        'É necessário enviar pelo menos um dado para atualização.',
+      );
     }
 
     const currentUser = await this.findOneByOrFail({ id });
@@ -76,7 +78,7 @@ export class UsersService {
     if (newEmail && newEmail !== currentEmail) {
       const emailExists = await this.userRepo.findOneBy({ email: newEmail });
       if (emailExists) {
-        throw new BadRequestException('Email já está em uso');
+        throw new ConflictException('Este e-mail já existe.');
       }
     }
 
@@ -96,7 +98,7 @@ export class UsersService {
     const isValid = await this.hasher.compare(currentPassword, user.password);
 
     if (!isValid) {
-      throw new UnauthorizedException('Senha atual inválida');
+      throw new UnauthorizedException('Senha atual incorreta.');
     }
 
     user.password = await this.hasher.hash(newPassword);
@@ -109,7 +111,7 @@ export class UsersService {
     const result = await this.userRepo.softDelete({ id });
 
     if (result.affected === 0) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new NotFoundException('O usuário não foi encontrado.');
     }
 
     return user;

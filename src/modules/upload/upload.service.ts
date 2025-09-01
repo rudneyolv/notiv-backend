@@ -6,7 +6,7 @@ const maxFileSize = 900 * 1024;
 
 @Injectable()
 export class UploadService {
-  async upload(file: Express.Multer.File) {
+  upload(file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo enviado.');
     }
@@ -50,7 +50,7 @@ export class UploadService {
     writeFileSync(fileFullPath, file.buffer);
 
     return {
-      url: `/uploads/${today}/${fileName}`,
+      url: `http://localhost:3001/uploads/${today}/${fileName}`,
     };
   }
 }
