@@ -9,8 +9,8 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
-import { SLUGIFY_TOKEN } from 'src/common/slugify/slugify.token';
-import { SlugifyInterface } from 'src/common/slugify/slugify.interface';
+import { SLUGIFY_TOKEN } from 'src/common/utils/slugify/slugify.token';
+import { SlugifyInterface } from 'src/common/utils/slugify/slugify.interface';
 import { UpdatePostDto } from './dto/update-post.dto';
 
 interface UpdateProps {

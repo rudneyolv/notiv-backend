@@ -15,7 +15,7 @@ import { fileFilter, limits, storage } from './upload.config';
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('supabase-jwt'))
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {

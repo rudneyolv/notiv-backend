@@ -4,16 +4,14 @@ import {
   Inject,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { HASH_TOKEN } from 'src/common/hash/hash.token';
-import { HashInterface } from 'src/common/hash/hash.interface';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdatePasswordDto } from './dto/update-password.dto';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_TOKEN } from '../supabase/supabase.provider';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +19,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
 
-    @Inject(HASH_TOKEN) private readonly hasher: HashInterface,
+    @Inject(SUPABASE_TOKEN) private readonly supabase: SupabaseClient,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -52,12 +50,19 @@ export class UsersService {
 
     if (exists) throw new ConflictException('Este e-mail já existe.');
 
-    const hashedPassword = await this.hasher.hash(password);
+    const { data: supabaseUser, error } = await this.supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error || !supabaseUser.user) {
+      throw new BadRequestException(error?.message || 'Erro ao criar usuário.');
+    }
 
     const user = {
       name,
       email,
-      password: hashedPassword,
+      supabaseId: supabaseUser.user.id,
     };
 
     return await this.userRepo.save(user);
@@ -90,21 +95,21 @@ export class UsersService {
     return await this.userRepo.save(currentUser);
   }
 
-  async updatePassword(id: string, data: UpdatePasswordDto): Promise<User> {
-    const { currentPassword, newPassword } = data;
+  // async updatePassword(id: string, data: UpdatePasswordDto): Promise<User> {
+  //   const { currentPassword, newPassword } = data;
 
-    const user = await this.findOneByOrFail({ id });
+  //   const user = await this.findOneByOrFail({ id });
 
-    const isValid = await this.hasher.compare(currentPassword, user.password);
+  //   const isValid = await this.hasher.compare(currentPassword, user.password);
 
-    if (!isValid) {
-      throw new UnauthorizedException('Senha atual incorreta.');
-    }
+  //   if (!isValid) {
+  //     throw new UnauthorizedException('Senha atual incorreta.');
+  //   }
 
-    user.password = await this.hasher.hash(newPassword);
+  //   user.password = await this.hasher.hash(newPassword);
 
-    return await this.userRepo.save(user);
-  }
+  //   return await this.userRepo.save(user);
+  // }
 
   async softDeleteMe(id: string): Promise<User> {
     const user = await this.findOneByOrFail({ id });

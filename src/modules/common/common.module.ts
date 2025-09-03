@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { HashProvider } from 'src/common/hash/hash.provider';
-import { SlugifyProvider } from 'src/common/slugify/slugify.provider';
+import { SlugifyProvider } from 'src/common/utils/slugify/slugify.provider';
 
 @Module({
-  providers: [HashProvider, SlugifyProvider],
-  exports: [HashProvider, SlugifyProvider],
+  providers: [SlugifyProvider],
+  exports: [SlugifyProvider],
 })
 export class CommonModule {}

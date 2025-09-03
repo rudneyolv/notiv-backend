@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthenticatedRequest } from './types/authenticated-request.types';
+import { UserResponseDto } from '../users/dto/response-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -21,7 +22,7 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('supabase-jwt'))
   @Get('validate-session')
   validateSession(@Req() req: AuthenticatedRequest) {
     return { logged: !!req.user };
@@ -42,6 +43,6 @@ export class AuthController {
       path: '/',
     });
 
-    return { accessToken: loginData.accessToken };
+    return new UserResponseDto(loginData.user);
   }
 }

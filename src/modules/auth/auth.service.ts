@@ -1,49 +1,41 @@
-import {
-  Inject,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from './dto/create-auth.dto';
 import { UsersService } from '../users/users.service';
-import { HASH_TOKEN } from 'src/common/hash/hash.token';
-import { HashInterface } from 'src/common/hash/hash.interface';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from './types/jwt.types';
 import { LoginResponse } from './types/auth-response.types';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_TOKEN } from '../supabase/supabase.provider';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
-    @Inject(HASH_TOKEN) private readonly hasher: HashInterface,
+    @Inject(SUPABASE_TOKEN) private readonly supabase: SupabaseClient,
   ) {}
 
   async login(data: LoginDto): Promise<LoginResponse> {
-    const { email: inputEmail, password: inputPassword } = data;
-    const user = await this.userService.findByEmail(inputEmail);
+    const { email, password } = data;
+    const user = await this.userService.findByEmail(email);
+
     if (!user) throw new UnauthorizedException('Usuário ou senha inválidos');
 
-    const { password: hashedPassword, id, email } = user;
+    const { data: supabaseData, error } =
+      await this.supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    const isValidPassword = await this.hasher.compare(
-      inputPassword,
-      hashedPassword,
-    );
-
-    if (!isValidPassword)
-      throw new UnauthorizedException('Usuário ou senha inválidos');
-
-    const jwtPayload: JwtPayload = {
-      id,
-      email,
-    };
-
-    const accessToken = await this.jwtService.signAsync(jwtPayload);
+    if (error || !supabaseData.session) {
+      throw new UnauthorizedException(
+        error?.message || 'Erro desconhecido ao autenticar.',
+      );
+    }
 
     return {
-      accessToken,
+      accessToken: supabaseData.session.access_token,
+      refreshToken: supabaseData.session.refresh_token,
+      user: user,
     };
   }
 }

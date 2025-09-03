@@ -16,6 +16,8 @@ import { AuthenticatedRequest } from '../auth/types/authenticated-request.types'
 import { PostResponseDto } from './dto/response-post.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { User } from '../users/entities/user.entity';
 
 @Controller('posts')
 export class PostController {
@@ -28,10 +30,10 @@ export class PostController {
     return cleanedPosts;
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('supabase-jwt'))
   @Get('/me')
-  async getMyPosts(@Req() req: AuthenticatedRequest) {
-    const myPosts = await this.postService.getAllByAuthorId(req.user.id);
+  async getMyPosts(@CurrentUser() user: User) {
+    const myPosts = await this.postService.getAllByAuthorId(user.id);
     const myPostsCleaned = myPosts.map((post) => new PostResponseDto(post));
     return myPostsCleaned;
   }
@@ -48,20 +50,20 @@ export class PostController {
     return new PostResponseDto(post);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('supabase-jwt'))
   @Post()
   async create(
-    @Req() req: AuthenticatedRequest,
+    @CurrentUser() user: User,
     @Body() data: CreatePostDto,
   ): Promise<PostResponseDto> {
-    const post = await this.postService.create({ data, author: req.user });
+    const post = await this.postService.create({ data, author: user });
     return new PostResponseDto(post);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('supabase-jwt'))
   @Patch('/:id')
   async update(
-    @Req() req: AuthenticatedRequest,
+    @CurrentUser() user: User,
     @Body() postDto: UpdatePostDto,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<PostResponseDto> {
@@ -71,22 +73,22 @@ export class PostController {
 
     const post = await this.postService.update({
       postId: id,
-      authorId: req.user.id,
+      authorId: user.id,
       postDto: postDto,
     });
 
     return new PostResponseDto(post);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('supabase-jwt'))
   @Patch('/soft-delete/:id')
   async softDelete(
-    @Req() req: AuthenticatedRequest,
+    @CurrentUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const post = await this.postService.softDelete({
       postId: id,
-      authorId: req.user.id,
+      authorId: user.id,
     });
 
     return new PostResponseDto(post);

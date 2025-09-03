@@ -6,15 +6,17 @@ import { CommonModule } from '../common/common.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { SupabaseModule } from '../supabase/supabase.module';
+import { SupabaseJwtStrategy } from './strategies/supabase-jwt.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, SupabaseJwtStrategy],
   imports: [
     PassportModule,
     UsersModule,
     CommonModule,
+    SupabaseModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
