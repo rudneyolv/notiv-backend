@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  Req,
   UseGuards,
   Get,
   Param,
@@ -12,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
-import { AuthenticatedRequest } from '../auth/types/authenticated-request.types';
 import { PostResponseDto } from './dto/response-post.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdatePostDto } from './dto/update-post.dto';

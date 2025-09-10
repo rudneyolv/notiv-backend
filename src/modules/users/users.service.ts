@@ -3,6 +3,8 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
@@ -11,15 +13,18 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_TOKEN } from '../supabase/supabase.provider';
+import { SUPABASE_ADMIN_TOKEN } from '../supabase/supabase.tokens';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
 
-    @Inject(SUPABASE_TOKEN) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN_TOKEN)
+    private readonly supabaseAdmin: SupabaseClient,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -46,26 +51,46 @@ export class UsersService {
 
   async create(data: CreateUserDto): Promise<User> {
     const { name, email, password } = data;
-    const exists = await this.userRepo.existsBy({ email });
+    let createdSupabaseUserId: string | null = null;
 
-    if (exists) throw new ConflictException('Este e-mail já existe.');
+    try {
+      const exists = await this.userRepo.existsBy({ email });
 
-    const { data: supabaseUser, error } = await this.supabase.auth.signUp({
-      email,
-      password,
-    });
+      if (exists) throw new ConflictException('Este e-mail já existe.');
 
-    if (error || !supabaseUser.user) {
-      throw new BadRequestException(error?.message || 'Erro ao criar usuário.');
+      const { data: supabaseUser, error: supabaseError } =
+        await this.supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+        });
+
+      if (supabaseError || !supabaseUser.user) {
+        throw new BadRequestException(
+          supabaseError?.message || 'Erro ao criar usuário.',
+        );
+      }
+
+      createdSupabaseUserId = supabaseUser.user.id;
+
+      const user = {
+        name,
+        email,
+        supabaseId: supabaseUser.user.id,
+      };
+
+      return await this.userRepo.save(user);
+    } catch (error) {
+      if (createdSupabaseUserId) {
+        this.logger.error(
+          `Falha ao salvar usuário no DB local. Revertendo criação no Supabase para o ID: ${createdSupabaseUserId}`,
+        );
+
+        await this.supabaseAdmin.auth.admin.deleteUser(createdSupabaseUserId);
+      }
+
+      throw error;
     }
-
-    const user = {
-      name,
-      email,
-      supabaseId: supabaseUser.user.id,
-    };
-
-    return await this.userRepo.save(user);
   }
 
   async update(id: string, data: UpdateUserDto): Promise<User> {

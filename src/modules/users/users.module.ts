@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,7 +7,11 @@ import { CommonModule } from '../common/common.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), CommonModule, SupabaseModule],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    CommonModule,
+    forwardRef(() => SupabaseModule),
+  ],
   exports: [UsersService],
   controllers: [UsersController],
   providers: [UsersService],

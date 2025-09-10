@@ -13,7 +13,6 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthenticatedRequest } from '../auth/types/authenticated-request.types';
 import { UserResponseDto } from './dto/response-user.dto';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { User } from './entities/user.entity';
@@ -32,9 +31,11 @@ export class UsersController {
 
   @UseGuards(AuthGuard('supabase-jwt'))
   @Get('me')
-  async getMe(@Req() req: AuthenticatedRequest): Promise<UserResponseDto> {
-    const user = await this.usersService.findOneByOrFail({ id: req.user.id });
-    return new UserResponseDto(user);
+  async getMe(@CurrentUser() user: User): Promise<UserResponseDto> {
+    const fetchedUser = await this.usersService.findOneByOrFail({
+      id: user.id,
+    });
+    return new UserResponseDto(fetchedUser);
   }
 
   @Get('/:id')
@@ -61,20 +62,10 @@ export class UsersController {
     return new UserResponseDto(updatedUser);
   }
 
-  //   @UseGuards(AuthGuard('supabase-jwt'))
-  // @Patch('/me/password')
-  // async updatePassword(
-  //   @Req() req: AuthenticatedRequest,
-  //   @Body() data: UpdatePasswordDto,
-  // ) {
-  //   const user = await this.usersService.updatePassword(req.user.id, data);
-  //   return new UserResponseDto(user);
-  // }
-
   @UseGuards(AuthGuard('supabase-jwt'))
   @Patch('me/soft-delete')
-  async softDeleteMe(@Req() req: AuthenticatedRequest) {
-    const user = await this.usersService.softDeleteMe(req.user.id);
-    return new UserResponseDto(user);
+  async softDeleteMe(@CurrentUser() user: User) {
+    const softDeletedUser = await this.usersService.softDeleteMe(user.id);
+    return new UserResponseDto(softDeletedUser);
   }
 }

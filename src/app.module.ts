@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from './modules/auth/auth.module';
 import { PostModule } from './modules/post/post.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,6 +6,7 @@ import { UsersModule } from './modules/users/users.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { SupabaseModule } from './modules/supabase/supabase.module';
 
 @Module({
   imports: [
@@ -39,10 +39,10 @@ import { APP_GUARD } from '@nestjs/core';
         synchronize: configService.get('NODE_ENV') !== 'production',
       }),
     }),
-    AuthModule,
     PostModule,
     UsersModule,
     UploadModule,
+    SupabaseModule,
   ],
   providers: [
     {

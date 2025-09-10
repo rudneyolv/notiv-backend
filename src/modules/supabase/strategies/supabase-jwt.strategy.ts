@@ -1,19 +1,12 @@
+// src/modules/auth/strategies/supabase-jwt.strategy.ts
+
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
+import { Strategy, ExtractJwt } from 'passport-jwt'; // <-- Apenas as ferramentas padrão são necessárias
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { UsersService } from 'src/modules/users/users.service';
 import { SupabaseJwtPayload } from '../types/jwt.types';
-import { Request } from 'express';
+import { User } from 'src/modules/users/entities/user.entity';
 
-// Request customizado para incluir cookies
-interface AuthRequest extends Request {
-  cookies: {
-    access_token?: string;
-    [key: string]: string | undefined;
-  };
-}
-
-//TODO: Alterar para usar decorator de CurrentUser()
 @Injectable()
 export class SupabaseJwtStrategy extends PassportStrategy(
   Strategy,
@@ -24,23 +17,19 @@ export class SupabaseJwtStrategy extends PassportStrategy(
 
     if (!supabaseSecret) {
       throw new InternalServerErrorException(
-        'SUPABASE_JWT_SECRET está ausente. Configure no .env',
+        'A variável de ambiente SUPABASE_JWT_SECRET precisa ser configurada.',
       );
     }
 
     super({
-      jwtFromRequest: (req: AuthRequest) => {
-        return (
-          req.cookies?.access_token ||
-          ExtractJwt.fromAuthHeaderAsBearerToken()(req)
-        );
-      },
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+
       ignoreExpiration: false,
       secretOrKey: supabaseSecret,
     });
   }
 
-  async validate(payload: SupabaseJwtPayload) {
+  async validate(payload: SupabaseJwtPayload): Promise<User> {
     const user = await this.usersService.findOneByOrFail({
       supabaseId: payload.sub,
     });
