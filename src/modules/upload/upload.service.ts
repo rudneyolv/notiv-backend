@@ -6,6 +6,8 @@ const maxFileSize = 900 * 1024;
 
 @Injectable()
 export class UploadService {
+  //TODO:Alterar upload para cloud
+
   upload(file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo enviado.');
@@ -15,7 +17,6 @@ export class UploadService {
       throw new BadRequestException('Arquivo muito grande');
     }
 
-    //TODO: Consertar validação e remover mimeToExt
     // const fileType = await fileTypeFromBuffer(file.buffer);
 
     // if (

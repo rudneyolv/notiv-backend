@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   ParseUUIDPipe,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -48,6 +49,12 @@ export class UsersController {
 
   @Post()
   async create(@Body() data: CreateUserDto): Promise<UserResponseDto> {
+    const allowNewUsers = process.env.ALLOW_NEW_USERS === '1';
+    if (!allowNewUsers) {
+      throw new ForbiddenException(
+        'Cadastro de novos usuários está desabilitado.',
+      );
+    }
     const user = await this.usersService.create(data);
     return new UserResponseDto(user);
   }

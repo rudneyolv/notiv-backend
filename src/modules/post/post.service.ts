@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
@@ -19,7 +14,6 @@ interface UpdateProps {
   postDto: UpdatePostDto;
 }
 
-// TODO: Filtro pra achar apenas posts com published
 @Injectable()
 export class PostService {
   constructor(
