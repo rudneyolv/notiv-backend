@@ -10,6 +10,7 @@ import { UploadService } from './upload.service';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilter, limits, storage } from './upload.config';
+import { Express } from 'express';
 
 @Controller('upload')
 export class UploadController {

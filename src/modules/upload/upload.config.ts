@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { memoryStorage } from 'multer';
+import { Express } from 'express';
 
 export const storage = memoryStorage();
 
