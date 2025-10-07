@@ -62,7 +62,6 @@ export class UsersService {
         await this.supabaseAdmin.auth.admin.createUser({
           email,
           password,
-          email_confirm: true,
         });
 
       if (supabaseError || !supabaseUser.user) {

@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   UseGuards,
-  Req,
   ParseUUIDPipe,
   ForbiddenException,
 } from '@nestjs/common';
